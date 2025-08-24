@@ -42,6 +42,8 @@ This project features a responsive UI, smooth transitions, and a built-in **dark
 
 You can even download the *shadeeds_tictactoe_offline.apk* on Android Mobiles to play the game while even being offline!
 
+Or,
+
 Clone or download the repository, then open `index.html` in your browser:
 
 ```bash
