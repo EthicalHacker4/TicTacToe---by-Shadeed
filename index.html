@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic-Tac-Toe</title>
+  <style>
+    :root {
+      --bg-light: #f0f0f5;
+      --bg-dark: #1c1c1e;
+      --text-light: #333;
+      --text-dark: #f9f9f9;
+      --cell-light: #ffffff;
+      --cell-dark: #444;
+      --primary-color: #ff6b6b;
+      --secondary-color: #4ecdc4;
+      --button-bg-light: #4ecdc4;
+      --button-bg-dark: #ff6b6b;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: var(--bg-light);
+      color: var(--text-light);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .toggle-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    .toggle-switch input {
+      display: none;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--primary-color);
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: '';
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--secondary-color);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 120px);
+      grid-template-rows: repeat(3, 120px);
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .cell {
+      width: 120px;
+      height: 120px;
+      background-color: var(--cell-light);
+      color: var(--primary-color);
+      font-size: 48px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: var(--cell-light);
+      color: var(--text-light);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .popup.hidden {
+      display: none;
+    }
+
+    .popup button {
+      margin-top: 15px;
+      padding: 10px 25px;
+      font-size: 16px;
+      background-color: var(--button-bg-light);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .popup button:hover {
+      background-color: var(--primary-color);
+    }
+
+    #restartButton {
+      margin-top: 20px;
+      padding: 10px 30px;
+      background-color: var(--button-bg-light);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #restartButton:hover {
+      background-color: var(--secondary-color);
+    }
+
+    /* Dark Mode Styling */
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    body.dark .cell {
+      background-color: var(--cell-dark);
+      color: var(--secondary-color);
+    }
+
+    body.dark .popup {
+      background-color: var(--cell-dark);
+      color: var(--text-dark);
+    }
+
+    body.dark .popup button,
+    body.dark #restartButton {
+      background-color: var(--button-bg-dark);
+    }
+  </style>
+</head>
+<body>
+  <div class="toggle-container">
+    <span>Dark Mode</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="darkModeToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="container">
+    <div class="board" id="board">
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
+    </div>
+    <button id="restartButton">Restart Game</button>
+  </div>
+
+  <div class="popup hidden" id="winnerPopup">
+    <p id="winnerMessage"></p>
+    <button id="newGameButton">New Game</button>
+  </div>
+
+  <script>
+    const board = document.getElementById('board');
+    const cells = document.querySelectorAll('.cell');
+    const winnerPopup = document.getElementById('winnerPopup');
+    const winnerMessage = document.getElementById('winnerMessage');
+    const restartButton = document.getElementById('restartButton');
+    const newGameButton = document.getElementById('newGameButton');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    
+    let currentPlayer = 'X';
+    let gameActive = true;
+    let gameState = ['', '', '', '', '', '', '', '', ''];
+
+    const winningConditions = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    function handleCellClick(event) {
+      const clickedCell = event.target;
+      const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+
+      if (gameState[clickedCellIndex] !== '' || !gameActive) {
+        return;
+      }
+
+      gameState[clickedCellIndex] = currentPlayer;
+      clickedCell.innerHTML = currentPlayer;
+
+      if (checkWinner()) {
+        gameActive = false;
+        winnerMessage.innerHTML = `Player ${currentPlayer} wins!`;
+        winnerPopup.classList.remove('hidden');
+      } else if (!gameState.includes('')) {
+        gameActive = false;
+        winnerMessage.innerHTML = `It's a tie!`;
+        winnerPopup.classList.remove('hidden');
+      } else {
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      }
+    }
+
+    function checkWinner() {
+      return winningConditions.some(condition => {
+        return condition.every(index => gameState[index] === currentPlayer);
+      });
+    }
+
+    function restartGame() {
+      currentPlayer = 'X';
+      gameState = ['', '', '', '', '', '', '', '', ''];
+      gameActive = true;
+      cells.forEach(cell => (cell.innerHTML = ''));
+    }
+
+    function newGame() {
+      winnerPopup.classList.add('hidden');
+      restartGame();
+    }
+
+    // Dark mode toggle functionality
+    darkModeToggle.addEventListener('change', function () {
+      document.body.classList.toggle('dark');
+    });
+
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    restartButton.addEventListener('click', restartGame);
+    newGameButton.addEventListener('click', newGame);
+  </script>
+</body>
+</html>
